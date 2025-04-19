@@ -67,3 +67,32 @@ func (r *AccountRepository) FindByApiKey(apiKey string) (*domain.Account, error)
 
 	return &account, nil
 }
+
+func (r *AccountRepository) FindByID(id string) (*domain.Account, error) {
+	var account domain.Account
+	var createdAt, updatedAt time.Time
+
+	err := r.db.QueryRow(`
+		SELECT * FROM accounts WHERE id = ?`,
+	).Scan(
+		&account.ID,
+		&account.Name,
+		&account.Email,
+		&account.APIKey,
+		&account.Balance,
+		&createdAt,
+		&updatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, domain.ErrAccountNotFound
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	account.CreatedAt = createdAt
+	account.UpdatedAt = updatedAt
+	return &account, nil
+}
